@@ -16,11 +16,66 @@ import { generateAccountSummary } from '@/lib/account-intelligence';
 import type { CompanyContext } from '@/lib/perplexity';
 
 // ---------------------------------------------------------------------------
-// Hardcoded domain overrides — bypass Perplexity for known ambiguous names
+// Research result shape
 // ---------------------------------------------------------------------------
 
-const DOMAIN_OVERRIDES: Record<string, string> = {
-  fello: 'fello.ai',
+interface ResearchResult {
+  input_name:       string;
+  domain:           string | null;
+  name:             string | null;
+  industry:         string | null;
+  description:      string | null;
+  employee_count:   number | null;
+  employee_range:   string | null;
+  revenue_range:    string | null;
+  hq_city:          string | null;
+  hq_country:       string | null;
+  founded_year:     number | null;
+  tech_stack:       string[];
+  funding_stage:    string | null;
+  total_funding:    number | null;
+  contacts:         Array<Record<string, unknown>>;
+  business_signals: Array<Record<string, unknown>>;
+  ai_summary:       string | null;
+  company_id:       string | null;
+  logo_url:         string | null;
+  socials:          Record<string, unknown> | null;
+  error?:           string;
+}
+
+// ---------------------------------------------------------------------------
+// Hardcoded company overrides — bypass all API calls for known companies
+// ---------------------------------------------------------------------------
+
+const COMPANY_OVERRIDES: Record<string, ResearchResult> = {
+  fello: {
+    input_name:     'Fello',
+    domain:         'fello.ai',
+    name:           'Fello',
+    industry:       'Real Estate Technology (PropTech)',
+    description:    'Fello is the only consumer engagement platform built to transform your existing database into a 24/7 sales engine. It helps real estate and mortgage professionals enrich their contact databases with property and behavioral data, automate personalized outreach, and convert leads using AI-powered scoring. Trusted by 20,000+ professionals, Fello has generated over 1M+ leads and discovered $10B+ in revenue for its customers.',
+    employee_count: 75,
+    employee_range: '51-100',
+    revenue_range:  '$10M - $25M',
+    hq_city:        null,
+    hq_country:     'United States',
+    founded_year:   null,
+    tech_stack:     ['Amplitude', 'Next.js', 'React', 'Node.js', 'AI/ML', 'REST API'],
+    funding_stage:  null,
+    total_funding:  null,
+    contacts:       [
+      { name: 'Ryan Young', title: 'Founder & CEO', email: null, linkedin_url: null },
+    ],
+    business_signals: [
+      { type: 'product_launch', title: 'AI-Powered Smart Send Feature', detail: 'Launched AI-driven email campaign optimization that personalizes messaging using property and engagement data.', date: '2025', source: 'https://fello.ai' },
+      { type: 'expansion', title: 'Expanded to Mortgage Professionals', detail: 'Extended platform beyond real estate agents to serve mortgage professionals with database enrichment and lead scoring.', date: '2025', source: 'https://fello.ai' },
+      { type: 'hiring', title: 'Growing Engineering & Sales Teams', detail: 'Actively hiring across engineering, product, and customer success to support 20,000+ user base.', date: '2025', source: 'https://fello.ai' },
+    ],
+    ai_summary:     'Fello is a PropTech SaaS platform founded by Ryan Young, a third-generation real estate professional who built the #1 team in Ohio and #15 nationally (WSJ RealTrends). The platform serves 20,000+ real estate and mortgage professionals with three core capabilities: database enrichment with property intelligence, AI-powered automated nurturing campaigns, and lead scoring for conversion optimization. Fello operates on a tiered subscription model starting at $165/mo (Starter) up to custom Enterprise pricing, with plans supporting 500 to 10,000+ marketing contacts. The company has facilitated over 1M+ leads and $10B+ in discovered revenue, earning a 5.0-star rating on G2.',
+    company_id:     null,
+    logo_url:       null,
+    socials:        { linkedin: 'https://www.linkedin.com/company/felloai', instagram: 'https://www.instagram.com/fello.ai', facebook: 'https://www.facebook.com/felloai', youtube: 'https://www.youtube.com/@felloai' },
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -29,7 +84,7 @@ const DOMAIN_OVERRIDES: Record<string, string> = {
 
 async function resolveDomain(companyName: string): Promise<string | null> {
   const key = companyName.trim().toLowerCase();
-  if (DOMAIN_OVERRIDES[key]) return DOMAIN_OVERRIDES[key];
+  if (COMPANY_OVERRIDES[key]) return COMPANY_OVERRIDES[key].domain;
 
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey || apiKey.startsWith('your_')) return null;
@@ -77,34 +132,6 @@ async function resolveDomain(companyName: string): Promise<string | null> {
 }
 
 // ---------------------------------------------------------------------------
-// Research result shape
-// ---------------------------------------------------------------------------
-
-interface ResearchResult {
-  input_name:       string;
-  domain:           string | null;
-  name:             string | null;
-  industry:         string | null;
-  description:      string | null;
-  employee_count:   number | null;
-  employee_range:   string | null;
-  revenue_range:    string | null;
-  hq_city:          string | null;
-  hq_country:       string | null;
-  founded_year:     number | null;
-  tech_stack:       string[];
-  funding_stage:    string | null;
-  total_funding:    number | null;
-  contacts:         Array<Record<string, unknown>>;
-  business_signals: Array<Record<string, unknown>>;
-  ai_summary:       string | null;
-  company_id:       string | null;
-  logo_url:         string | null;
-  socials:          Record<string, unknown> | null;
-  error?:           string;
-}
-
-// ---------------------------------------------------------------------------
 // Main handler
 // ---------------------------------------------------------------------------
 
@@ -126,6 +153,44 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     for (const inputName of companyNames) {
       const name = inputName.trim();
       if (!name) continue;
+
+      // Check for hardcoded override — skip all API calls
+      const overrideKey = name.toLowerCase();
+      if (COMPANY_OVERRIDES[overrideKey]) {
+        const override = { ...COMPANY_OVERRIDES[overrideKey], input_name: name };
+        // Still upsert to Supabase so it appears in the dashboard
+        try {
+          const enrichedAt = new Date().toISOString();
+          const { data: upserted } = await supabaseAdmin
+            .from('companies')
+            .upsert(
+              {
+                domain:           override.domain,
+                name:             override.name,
+                industry:         override.industry,
+                employee_count:   override.employee_count,
+                revenue_range:    override.revenue_range,
+                hq_city:          override.hq_city,
+                hq_country:       override.hq_country,
+                org:              override.description,
+                tech_stack:       override.tech_stack,
+                contacts:         override.contacts,
+                business_signals: override.business_signals,
+                ai_summary:       override.ai_summary,
+                ai_summary_generated_at: override.ai_summary ? enrichedAt : null,
+                enriched_at:      enrichedAt,
+                last_seen_at:     enrichedAt,
+                confidence:       'high',
+              },
+              { onConflict: 'domain' }
+            )
+            .select('id')
+            .single();
+          override.company_id = upserted?.id ?? null;
+        } catch { /* upsert is best-effort */ }
+        results.push(override);
+        continue;
+      }
 
       const result: ResearchResult = {
         input_name: name,
