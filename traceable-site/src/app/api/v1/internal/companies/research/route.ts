@@ -16,10 +16,21 @@ import { generateAccountSummary } from '@/lib/account-intelligence';
 import type { CompanyContext } from '@/lib/perplexity';
 
 // ---------------------------------------------------------------------------
+// Hardcoded domain overrides — bypass Perplexity for known ambiguous names
+// ---------------------------------------------------------------------------
+
+const DOMAIN_OVERRIDES: Record<string, string> = {
+  fello: 'fello.ai',
+};
+
+// ---------------------------------------------------------------------------
 // Domain resolution via Perplexity
 // ---------------------------------------------------------------------------
 
 async function resolveDomain(companyName: string): Promise<string | null> {
+  const key = companyName.trim().toLowerCase();
+  if (DOMAIN_OVERRIDES[key]) return DOMAIN_OVERRIDES[key];
+
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey || apiKey.startsWith('your_')) return null;
 
