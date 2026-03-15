@@ -109,7 +109,7 @@ export async function POST(req: NextRequest) {
 
     if (!summary) {
       return NextResponse.json(
-        { error: "Failed to generate summary. Check OPENAI_API_KEY." },
+        { error: "Failed to generate summary. Check OPENROUTER_API_KEY." },
         { status: 502 }
       );
     }

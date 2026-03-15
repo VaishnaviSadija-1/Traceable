@@ -54,8 +54,8 @@ const COMPANY_OVERRIDES: Record<string, ResearchResult> = {
     name:           'Fello',
     industry:       'Real Estate Technology (PropTech)',
     description:    'Fello is the only consumer engagement platform built to transform your existing database into a 24/7 sales engine. It helps real estate and mortgage professionals enrich their contact databases with property and behavioral data, automate personalized outreach, and convert leads using AI-powered scoring. Trusted by 20,000+ professionals, Fello has generated over 1M+ leads and discovered $10B+ in revenue for its customers.',
-    employee_count: 75,
-    employee_range: '51-100',
+    employee_count: 150,
+    employee_range: '100-200',
     revenue_range:  '$10M - $25M',
     hq_city:        null,
     hq_country:     'United States',
@@ -64,7 +64,7 @@ const COMPANY_OVERRIDES: Record<string, ResearchResult> = {
     funding_stage:  null,
     total_funding:  null,
     contacts:       [
-      { name: 'Ryan Young', title: 'Founder & CEO', email: null, linkedin_url: null },
+      { full_name: 'Ryan Young', title: 'Founder & CEO', email: null, linkedin_url: 'https://www.linkedin.com/in/ryanyoung20' },
     ],
     business_signals: [
       { type: 'product_launch', title: 'AI-Powered Smart Send Feature', detail: 'Launched AI-driven email campaign optimization that personalizes messaging using property and engagement data.', date: '2025', source: 'https://fello.ai' },

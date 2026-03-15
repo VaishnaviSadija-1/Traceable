@@ -10,8 +10,8 @@
  *    Multiple visits to pricing and case studies suggest strong purchase intent."
  */
 
-const ENDPOINT = "https://api.openai.com/v1/chat/completions";
-const MODEL = "gpt-4.1-mini";
+const ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
+const MODEL = "openai/gpt-4.1-mini";
 
 export interface AccountIntelligenceContext {
   // Company data
@@ -76,9 +76,9 @@ function buildUserPrompt(ctx: AccountIntelligenceContext): string {
 export async function generateAccountSummary(
   ctx: AccountIntelligenceContext
 ): Promise<string | null> {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey || apiKey.startsWith("your_")) {
-    console.warn("[account-intelligence] OPENAI_API_KEY not configured");
+    console.warn("[account-intelligence] OPENROUTER_API_KEY not configured");
     return null;
   }
 
@@ -88,6 +88,8 @@ export async function generateAccountSummary(
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
+        "HTTP-Referer": "https://traceable.app",
+        "X-Title": "Traceable Account Intelligence",
       },
       body: JSON.stringify({
         model: MODEL,
