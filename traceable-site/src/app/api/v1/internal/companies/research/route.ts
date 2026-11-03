@@ -76,7 +76,40 @@ const COMPANY_OVERRIDES: Record<string, ResearchResult> = {
     logo_url:       null,
     socials:        { linkedin: 'https://www.linkedin.com/company/felloai', instagram: 'https://www.instagram.com/fello.ai', facebook: 'https://www.facebook.com/felloai', youtube: 'https://www.youtube.com/@felloai' },
   },
+  auxoai: {
+    input_name:     'AuxoAI',
+    domain:         'auxoai.com',
+    name:           'AuxoAI',
+    industry:       'Enterprise AI Services',
+    description:    'AuxoAI is a forward-deployed enterprise AI company that embeds AI engineering teams inside large organizations to build, test, and deploy production AI and agentic solutions. It has supported 40+ enterprise clients across manufacturing, healthcare, consumer goods, and telecommunications.',
+    employee_count: 150,
+    employee_range: '100-200',
+    revenue_range:  null,
+    hq_city:        'San Francisco',
+    hq_country:     'United States',
+    founded_year:   2022,
+    tech_stack:     ['Google Cloud', 'Gemini', 'Agentic AI', 'LLMs'],
+    funding_stage:  'Series A',
+    total_funding:  20700000,
+    contacts:       [
+      { full_name: 'Amaresh Tripathy', title: 'Co-Founder', email: null, linkedin_url: null },
+      { full_name: 'Arvinder Pal Singh', title: 'Co-Founder & Managing Partner', email: null, linkedin_url: null },
+      { full_name: 'Kabir Singh', title: 'Co-Founder & Managing Partner', email: null, linkedin_url: null },
+    ],
+    business_signals: [
+      { type: 'funding', title: '$20.7M Series A Led by NTTVC', detail: 'Raised $20.7M to expand its global talent, proprietary technology, and forward-deployed delivery capabilities.', date: '2026-10', source: 'https://letsdatascience.com/news/auxoai-raises-207m-series-a-for-enterprise-ai-delivery-42b16816' },
+      { type: 'partnership', title: 'Google Cloud Gemini Enterprise Program', detail: 'Named partner in Google Cloud\'s Gemini Enterprise transformation program to build and deploy agentic solutions on Gemini models.', date: '2026-04', source: 'https://techintelpro.com/news/auxoai-joins-google-cloud-gemini-enterprise-transformation-program' },
+      { type: 'hiring', title: 'Scaling Forward-Deployed Engineering Team', detail: 'Series A proceeds are earmarked for growing its forward-deployed engineering (FDE) and delivery teams globally.', date: '2026-10', source: 'https://inc42.com/buzz/enterprise-ai-startup-auxoai-nets-20-7m-to-strengthen-its-fde-team/' },
+    ],
+    ai_summary:     'AuxoAI is a San Francisco-based enterprise AI services company founded in 2022 by Amaresh Tripathy, Arvinder Pal Singh, and Kabir Singh. Its forward-deployed model places AI engineers directly inside client organizations, and it has delivered for 40+ enterprises across manufacturing, healthcare, consumer goods, and telecom. The company closed a $20.7M Series A led by NTTVC in October 2026 and joined Google Cloud\'s Gemini Enterprise transformation program in April 2026. With fresh funding and a growing delivery team, AuxoAI is in an expansion phase and a strong candidate for tooling that helps it identify and prioritize enterprise buyers.',
+    company_id:     null,
+    logo_url:       null,
+    socials:        { linkedin: 'https://www.linkedin.com/company/auxoai' },
+  },
 };
+
+// Alias: users often type "Auxo AI" with a space
+COMPANY_OVERRIDES['auxo ai'] = COMPANY_OVERRIDES.auxoai;
 
 // ---------------------------------------------------------------------------
 // Domain resolution via Perplexity
@@ -111,10 +144,14 @@ async function resolveDomain(companyName: string): Promise<string | null> {
           },
         ],
         temperature: 0.0,
+        max_tokens: 200,
       }),
     });
 
-    if (!res.ok) return null;
+    if (!res.ok) {
+      console.warn(`[research] Domain resolution HTTP ${res.status} for "${companyName}"`);
+      return null;
+    }
 
     const json = await res.json();
     const content: string = json.choices?.[0]?.message?.content ?? '';

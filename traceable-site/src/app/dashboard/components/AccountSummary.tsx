@@ -47,7 +47,7 @@ export default function AccountSummary({
       if (data.email_sent) {
         setEmailStatus("Summary emailed to sales team");
       } else if (data.email_error) {
-        setEmailStatus(`Email failed: ${data.email_error}`);
+        setEmailStatus("Summary generated, but the email couldn't be sent. Check the SMTP settings.");
       }
     } catch {
       setError("Something went wrong. Please try again.");
